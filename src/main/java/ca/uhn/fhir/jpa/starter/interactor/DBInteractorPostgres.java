@@ -56,10 +56,10 @@ public class DBInteractorPostgres implements IDBInteractor {
       boolean isPractitioner = resultSet.getBoolean("ispractitioner");
       long issued = -1;
       long expire = -1;
-      String[] scopes = resultSet.getString("scopes").replaceAll("[\\]\\[\"]","").split(",");
+     // String[] scopes = resultSet.getString("scopes").replaceAll("[\\]\\[\"]","").split(",");
       String status = resultSet.getString("status");
       postgresStm.close();
-      return new TokenRecord(userId, token, isPractitioner, issued, expire, scopes, status);
+      return new TokenRecord(userId, token, isPractitioner, issued, expire, null, status);
     } catch (SQLException e) {
       ourLog.error("postgreSQL error:", e);
       if(e.getCause().getClass() == java.net.SocketException.class){
