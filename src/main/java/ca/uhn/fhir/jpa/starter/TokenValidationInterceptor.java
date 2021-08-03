@@ -20,8 +20,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Interceptor
 public class TokenValidationInterceptor extends AuthorizationInterceptor {
-  private final static Map ruleCache = new ConcurrentHashMap<String, AuthRulesWrapper> ();
-  private final static Map tokenCache = new ConcurrentHashMap<String, TokenRecord>();
+  private final static Map<String, AuthRulesWrapper> ruleCache = new ConcurrentHashMap<> ();
+  private final static Map<String, TokenRecord> tokenCache = new ConcurrentHashMap<>();
   public static Timer cacheTimer = new Timer("cache Timer",true);
 
   static
@@ -186,11 +186,11 @@ public class TokenValidationInterceptor extends AuthorizationInterceptor {
   }
 
   private static TokenRecord getCachedTokenIfExists(String cacheKey) {
-    return  (TokenRecord) CacheUtil.getCacheEntry(tokenCache, cacheKey);
+    return CacheUtil.getCacheEntry(tokenCache, cacheKey);
   }
 
   private static AuthRulesWrapper getCachedRuleIfExists(String cacheKey) {
-    return (AuthRulesWrapper) CacheUtil.getCacheEntry(ruleCache, cacheKey);
+    return CacheUtil.getCacheEntry(ruleCache, cacheKey);
   }
 
   public static void cleanTokenCache(){

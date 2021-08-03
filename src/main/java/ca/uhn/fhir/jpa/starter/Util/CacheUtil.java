@@ -10,22 +10,23 @@ import java.util.List;
 import java.util.Map;
 
 public class CacheUtil {
-  private static String[] userIdsParamName = new String[]{ "subject", "participant" };
-  public static CacheRecord getCacheEntry(Map<String, CacheRecord> cache, String cacheKey){
-    var cachedRule = cache.get(cacheKey);
+  private static final String[] userIdsParamName = new String[]{ "subject", "participant" };
+
+  public static <T extends CacheRecord> T getCacheEntry(Map<String, T> cache, String cacheKey){
+    T cachedRule = cache.get(cacheKey);
     if (cachedRule != null) {
-      var recordTtl = cachedRule.recordTtl;
+      long recordTtl = cachedRule.recordTtl;
       if ((recordTtl - System.currentTimeMillis()) > 999) {
         return cachedRule;
       } else {
-        cache.remove(recordTtl);
+        cache.remove(cacheKey);
       }
     }
 
     return null;
   }
 
-  public static void cleanCache(Map<String, CacheRecord> cache){
+  public static <T extends CacheRecord> void cleanCache(Map<String, T> cache){
     List<String> removeList = new ArrayList<>();
     cache.forEach((k, v) -> {
       if (v.isRecordExpired()) {
