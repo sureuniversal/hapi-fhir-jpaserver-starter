@@ -2,10 +2,14 @@ package ca.uhn.fhir.jpa.starter.Util;
 
 import ca.uhn.fhir.jpa.starter.Models.CacheRecord;
 import ca.uhn.fhir.jpa.starter.authorization.rules.RuleBase;
+import ca.uhn.fhir.rest.api.RequestTypeEnum;
 import ca.uhn.fhir.rest.api.server.RequestDetails;
+import org.hl7.fhir.instance.model.api.IBaseResource;
+import org.hl7.fhir.instance.model.api.IIdType;
+import org.hl7.fhir.r4.model.Flag;
+import org.hl7.fhir.r4.model.Observation;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -39,33 +43,47 @@ public class CacheUtil {
 
   public static String getCacheEntryForRequest(RequestDetails theRequestDetails, RuleBase rule, String authHeader)
   {
-    var params = theRequestDetails.getParameters();
     StringBuilder askedUsers = new StringBuilder();
-    if (params != null && !params.isEmpty())
-    {
-      for(var name : userIdsParamName)
-      {
-        var value = params.get(name);
-        if (value != null)
-        {
-          var val = value[0];
-          askedUsers.append(val);
+    if(theRequestDetails.getRequestType() == RequestTypeEnum.GET || theRequestDetails.getRequestType() == RequestTypeEnum.DELETE) {
+      Map<String, String[]> params = theRequestDetails.getParameters();
+      if (params != null && !params.isEmpty()) {
+        for (String name : userIdsParamName) {
+          String[] value = params.get(name);
+          if (value != null) {
+            String val = value[0];
+            askedUsers.append(val);
+          }
         }
       }
-    }
-    else if (theRequestDetails.getId() != null)
-    {
-      try {
-        var id = theRequestDetails.getId();
-        askedUsers = new StringBuilder(id.getIdPart());
-      } catch (Exception e) {
-        askedUsers = new StringBuilder("error-id");
+      else if (theRequestDetails.getId() != null)
+      {
+        try {
+          IIdType id = theRequestDetails.getId();
+          askedUsers.append(id.getIdPart());
+        } catch (Exception e) {
+          return null;
+        }
       }
+    } else if(theRequestDetails.getResource() != null) {
+      IBaseResource resource = theRequestDetails.getResource();
+      switch (resource.fhirType()){
+        case "Observation":
+          askedUsers.append(((Observation)resource).getSubject().getReferenceElement().getIdPart());
+          break;
+        case "Flag":
+          askedUsers.append(((Flag)resource).getSubject().getReferenceElement().getIdPart());
+          break;
+        case "Patient":
+        case "Practitioner":
+        default:
+          return null;
+      }
+    } else {
+      return null;
     }
 
-    var type = rule.type.getName();
-    var operation = rule.requestType;
-    var cacheKey = authHeader + '-' + type + '-' + operation + '-' + askedUsers;
-    return cacheKey;
+    String type = rule.type.getName();
+    RequestTypeEnum operation = rule.requestType;
+    return authHeader + '-' + type + '-' + operation + '-' + askedUsers;
   }
 }

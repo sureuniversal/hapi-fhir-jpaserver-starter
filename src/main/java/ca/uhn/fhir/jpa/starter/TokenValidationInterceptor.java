@@ -190,6 +190,7 @@ public class TokenValidationInterceptor extends AuthorizationInterceptor {
   }
 
   private static AuthRulesWrapper getCachedRuleIfExists(String cacheKey) {
+    if(cacheKey == null) return null;
     return CacheUtil.getCacheEntry(ruleCache, cacheKey);
   }
 
