@@ -26,6 +26,7 @@ public class Search {
     server = System.getenv("INTERNAL_SERVER");
   }
 
+
   public static IGenericClient getClient() {
     return client;
   }
