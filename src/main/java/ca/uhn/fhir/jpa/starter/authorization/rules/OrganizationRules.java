@@ -50,6 +50,11 @@ public class OrganizationRules extends RuleBase{
     return ruleList;
   }
 
+  @Override
+  public List<IAuthRule> handleDelete() {
+    return new RuleBuilder().denyAll().build();
+  }
+
   public List<IAuthRule> handleUpdate()
   {
     return handlePost();

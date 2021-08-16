@@ -168,6 +168,7 @@ public class TokenValidationInterceptor extends AuthorizationInterceptor {
       case PATCH:
         return rule.handleUpdate();
       case DELETE:
+        return rule.handleDelete();
       case POST:
         return rule.handlePost();
       default:
@@ -178,9 +179,11 @@ public class TokenValidationInterceptor extends AuthorizationInterceptor {
   private void setRequestResource(RequestDetails requestDetails, RuleBase rule)
   {
     switch (requestDetails.getRequestType()) {
-      case PUT: rule.SetRequestId(requestDetails);
       case PATCH:
       case DELETE:
+      case PUT:
+        rule.SetRequestId(requestDetails);
+        break;
       case POST: rule.SetRequestResource(requestDetails.getResource());
     }
   }

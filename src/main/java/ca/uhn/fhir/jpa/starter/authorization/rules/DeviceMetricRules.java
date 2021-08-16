@@ -46,6 +46,11 @@ public class DeviceMetricRules extends RuleBase {
   }
 
   @Override
+  public List<IAuthRule> handleDelete() {
+    return new RuleBuilder().denyAll().build();
+  }
+
+  @Override
   public List<IAuthRule> handlePost() {
     var allowedDeviceIdRefs = this.setupAllowedIdList();
     RuleBuilder ruleBuilder = new RuleBuilder();
@@ -64,6 +69,7 @@ public class DeviceMetricRules extends RuleBase {
 
     return ruleList;
   }
+
 
   public List<IAuthRule> handleUpdate()
   {

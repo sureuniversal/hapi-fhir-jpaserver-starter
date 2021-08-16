@@ -66,6 +66,11 @@ public class PatientRules extends RuleBase {
     return new RuleBuilder().allowAll().build();
   }
 
+  @Override
+  public List<IAuthRule> handleDelete() {
+    return new RuleBuilder().denyAll().build();
+  }
+
   protected boolean isOperationAllowed()
   {
     var userIds = this.setupAllowedUserIdList();

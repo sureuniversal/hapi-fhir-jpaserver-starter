@@ -3,6 +3,7 @@ package ca.uhn.fhir.jpa.starter.authorization.rules;
 import ca.uhn.fhir.jpa.starter.Models.UserType;
 import ca.uhn.fhir.jpa.starter.Util.CareTeamSearch;
 import ca.uhn.fhir.jpa.starter.Util.Search;
+import ca.uhn.fhir.rest.server.exceptions.InvalidRequestException;
 import ca.uhn.fhir.rest.server.interceptor.auth.IAuthRule;
 import ca.uhn.fhir.rest.server.interceptor.auth.RuleBuilder;
 import org.hl7.fhir.instance.model.api.IIdType;
@@ -44,6 +45,31 @@ public class ObservationRules extends PatientRules {
     }
 
     return new RuleBuilder().denyAll("This user can not add observation to this patient").build();
+  }
+
+  @Override
+  public List<IAuthRule> handleDelete() {
+   if (this.requestResourceId == null)
+   {
+     throw InvalidRequestException.newInstance(400, "\"No Observation Id");
+   }
+
+   var observation = Search.getResourceById(this.requestResourceId.getIdPart(), Observation.class);
+   if (observation == null) {
+     throw InvalidRequestException.newInstance(404, "\"No Observation found");
+   }
+
+    if(observation.hasSubject())
+    {
+      var subjectId = observation.getSubject().getReferenceElement().getIdPart();
+      var allowedIds = this.GetAllowedUsersToAddAnObs();
+      if (allowedIds.contains(subjectId))
+      {
+        return new RuleBuilder().allowAll().build();
+      }
+    }
+
+    return new RuleBuilder().denyAll("Not allowed to delete observation").build();
   }
 
   // sec rules updates

@@ -91,6 +91,11 @@ public class PractitionerRules extends RuleBase {
     }
   }
 
+  @Override
+  public List<IAuthRule> handleDelete() {
+    return new RuleBuilder().denyAll().build();
+  }
+
   private IIdType GetUserOrganization()
   {
     IIdType userOrganization;

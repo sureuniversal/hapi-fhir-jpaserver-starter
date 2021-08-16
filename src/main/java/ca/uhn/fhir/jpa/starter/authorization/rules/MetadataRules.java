@@ -25,4 +25,9 @@ public class MetadataRules extends RuleBase {
   {
     return handlePost();
   }
+
+  @Override
+  public List<IAuthRule> handleDelete() {
+    return new RuleBuilder().allowAll().build();
+  }
 }

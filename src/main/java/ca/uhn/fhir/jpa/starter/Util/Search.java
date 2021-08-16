@@ -1,8 +1,6 @@
 package ca.uhn.fhir.jpa.starter.Util;
 
 import ca.uhn.fhir.context.FhirContext;
-import ca.uhn.fhir.jpa.starter.HapiProperties;
-import ca.uhn.fhir.jpa.starter.Models.TokenRecord;
 import ca.uhn.fhir.jpa.starter.Models.UserType;
 import ca.uhn.fhir.rest.api.CacheControlDirective;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
@@ -14,7 +12,6 @@ import org.hl7.fhir.instance.model.api.IIdType;
 import org.hl7.fhir.r4.model.*;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -41,6 +38,11 @@ public class Search {
     ctx.getRestfulClientFactory().setHttpClient(httpClient);
 
     Search.setClient(ctx.newRestfulGenericClient(server));
+  }
+
+  public static <T extends BaseResource> T getResourceById(String id, Class<T> tClass)
+  {
+    return client.read().resource(tClass).withId(id).execute();
   }
 
   public static List<IIdType> getDevices(List<IIdType> patientIds) {

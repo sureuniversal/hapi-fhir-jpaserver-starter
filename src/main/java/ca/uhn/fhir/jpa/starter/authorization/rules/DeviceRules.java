@@ -22,6 +22,12 @@ public class DeviceRules extends RuleBase {
     return new RuleBuilder().allowAll().build();
   }
 
+  @Override
+  public List<IAuthRule> handleDelete() {
+    return new RuleBuilder().allowAll().build();
+  }
+
+  @Override
   public List<IAuthRule> handleUpdate()
   {
     return handlePost();

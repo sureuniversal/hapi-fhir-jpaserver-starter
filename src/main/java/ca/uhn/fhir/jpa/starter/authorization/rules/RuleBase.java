@@ -43,6 +43,8 @@ public abstract class RuleBase {
 
   public abstract List<IAuthRule> handleUpdate();
 
+  public abstract List<IAuthRule> handleDelete();
+
   protected List<IAuthRule> commonRulesGet() {
     return new RuleBuilder()
       .allow().metadata().andThen().allow().transaction().withAnyOperation().andApplyNormalRules().andThen()
