@@ -148,7 +148,12 @@ public class TokenValidationInterceptor extends AuthorizationInterceptor {
       this.setRequestResource(theRequestDetails, rule);
 
       List<IAuthRule> result = HandleRule(rule,scopes);
-      ruleCache.put(cacheKey, new AuthRulesWrapper(result));
+
+      if (cacheKey != null)
+      {
+        ruleCache.put(cacheKey, new AuthRulesWrapper(result));
+      }
+
       rulesList.addAll(result);
     }
 
