@@ -4,6 +4,7 @@ import ca.uhn.fhir.jpa.starter.Models.TokenRecord;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -28,7 +29,6 @@ public class DBInteractorLoopback implements IDBInteractor{
   }
 
   private final String loopbackUrl;
-  private static final CloseableHttpClient client = HttpClients.createMinimal();
   public DBInteractorLoopback(String loopbackUrl) {
     this.loopbackUrl = loopbackUrl;
   }
@@ -36,16 +36,23 @@ public class DBInteractorLoopback implements IDBInteractor{
   @Override
   public TokenRecord getTokenRecord(String token) {
     try {
+      CloseableHttpClient client = HttpClients.createMinimal();
       HttpGet request = new HttpGet(loopbackUrl+"getUserInfoByAccessToken?access_token="+token);
 
-      HttpResponse httpResponse = client.execute(request);
+      CloseableHttpResponse httpResponse = client.execute(request);
       if(httpResponse.getStatusLine().getStatusCode() == 401){
         byte [] buff = new byte[300];
         httpResponse.getEntity().getContent().read(buff,0,300);
+
+        httpResponse.close();
+        client.close();
+
         return new TokenRecord(null,null,false,0,0,null,new String(buff).trim());
       }
-      LoopbackUserInfo response = new ObjectMapper().readValue(httpResponse.getEntity().getContent(), LoopbackUserInfo.class);
 
+      LoopbackUserInfo response = new ObjectMapper().readValue(httpResponse.getEntity().getContent(), LoopbackUserInfo.class);
+      httpResponse.close();
+      client.close();
       return new TokenRecord(response.userId, token, response.isPractitioner, 0,0,null, response.status);
     } catch (IOException e) {
       e.printStackTrace();
