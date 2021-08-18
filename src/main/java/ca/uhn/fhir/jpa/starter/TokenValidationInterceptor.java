@@ -48,7 +48,7 @@ public class TokenValidationInterceptor extends AuthorizationInterceptor {
         .allowAll("Port 8080")
         .build();
     }
-    theRequestDetails.getParameters();
+
     String authHeader = theRequestDetails.getHeader("Authorization");
     if (authHeader == null) {
       return new RuleBuilder()
@@ -57,11 +57,16 @@ public class TokenValidationInterceptor extends AuthorizationInterceptor {
     }
 
     String token = authHeader.replace("Bearer ", "");
+    CustomLoggingInterceptor.logDebug(theRequestDetails, "checking cache for token: " + token);
     TokenRecord tokenRecord = getCachedTokenIfExists(token);
     if (tokenRecord == null)
     {
+      CustomLoggingInterceptor.logDebug(theRequestDetails, "checking cache for token: " + token + " not in cache");
+
       tokenRecord = DBUtils.getTokenRecord(token);
       if (tokenRecord == null) {
+        CustomLoggingInterceptor.logDebug(theRequestDetails, "token: " + token + " invalid token");
+
         return new RuleBuilder()
           .denyAll("invalid token")
           .build();
@@ -94,6 +99,8 @@ public class TokenValidationInterceptor extends AuthorizationInterceptor {
 
       tokenCache.put(token, tokenRecord);
     }
+
+    CustomLoggingInterceptor.logDebug(theRequestDetails, "token " + token + " valid. Token cache size: " + tokenCache.size());
 
     boolean isAdmin = tokenRecord.isAdmin();
     String userId = tokenRecord.getId();
@@ -131,6 +138,7 @@ public class TokenValidationInterceptor extends AuthorizationInterceptor {
       AuthRulesWrapper cachedRule = getCachedRuleIfExists(cacheKey);
       if (cachedRule != null)
       {
+        CustomLoggingInterceptor.logDebug(theRequestDetails, "request in cache");
         return cachedRule.rules;
       }
 

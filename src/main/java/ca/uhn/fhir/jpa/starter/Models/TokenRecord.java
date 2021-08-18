@@ -9,7 +9,6 @@ public class TokenRecord extends CacheRecord {
   UserType type = UserType.patient;
   final long issuedDate;
   final long expiresIn;
-  final long recordTtl;
   final String[] scopes;
   final String status;
 

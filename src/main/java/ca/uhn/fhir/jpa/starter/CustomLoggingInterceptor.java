@@ -56,7 +56,7 @@ public class CustomLoggingInterceptor {
   private static String ErrorRequestMessageFormat = System.getenv("LOGGER_FORMAT_ERROR");
   private static String RequestCompletedNormallyMessageFormat = System.getenv("LOGGER_FORMAT_REQUEST_COMPLETED_NORMALLY");
 
-  private Logger myLogger = ourLog;
+  private static Logger myLogger = ourLog;
 
   @Hook(Pointcut.SERVER_INCOMING_REQUEST_PRE_HANDLED)
   public void requestPreHandled(ServletRequestDetails theRequestDetails){
@@ -96,6 +96,10 @@ public class CustomLoggingInterceptor {
     return true;
   }
 
+  public static void logDebug(RequestDetails theRequestDetails, String message) {
+    String line = theRequestDetails.getRequestId() + " " + message;
+    myLogger.info(line);
+  }
 
   public void setLogger(Logger theLogger) {
     Validate.notNull(theLogger, "Logger can not be null");
@@ -110,7 +114,7 @@ public class CustomLoggingInterceptor {
 
   private static final class MyLookup implements StringLookup {
     private final Throwable myException;
-    private final HttpServletRequest myRequest;
+    HttpServletRequest myRequest;
     private final RequestDetails myRequestDetails;
 
     private MyLookup(HttpServletRequest theRequest, RequestDetails theRequestDetails) {
