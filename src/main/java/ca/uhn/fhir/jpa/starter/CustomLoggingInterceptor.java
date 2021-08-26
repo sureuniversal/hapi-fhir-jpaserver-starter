@@ -96,7 +96,7 @@ public class CustomLoggingInterceptor {
     return true;
   }
 
-  public static void logDebug(RequestDetails theRequestDetails, String message) {
+  static void logDebug(RequestDetails theRequestDetails, String message) {
     String line = theRequestDetails.getRequestId() + " " + message;
     myLogger.info(line);
   }

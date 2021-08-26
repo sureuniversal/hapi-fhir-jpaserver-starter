@@ -7,6 +7,7 @@ import ca.uhn.fhir.rest.server.exceptions.InvalidRequestException;
 import ca.uhn.fhir.rest.server.interceptor.auth.IAuthRule;
 import ca.uhn.fhir.rest.server.interceptor.auth.RuleBuilder;
 import org.hl7.fhir.instance.model.api.IIdType;
+import org.hl7.fhir.r4.model.Flag;
 import org.hl7.fhir.r4.model.Observation;
 import org.hl7.fhir.r4.model.Patient;
 
@@ -20,81 +21,59 @@ public class ObservationRules extends PatientRules {
     this.type = Observation.class;
   }
 
-  // sec rules updates
-  // We need to check if the request body to see if the subject for the observation is referencing the sending user
   @Override
-  public List<IAuthRule> handlePost() {
-    var allowedUsers = this.GetAllowedUsersToAddAnObs();
-
-    if (this.requestResource != null )
+  public List<IAuthRule> handleGet() {
+    switch (this.searchParamType)
     {
-      Observation resource = (Observation) this.requestResource;
-      if (resource.hasSubject())
-      {
-        var subject = resource.getSubject().getReferenceElement().getIdPart();
-        var exists = false;
-        for (var allowedId : allowedUsers) {
-          exists = exists || allowedId.compareTo(subject) == 0;
-        }
-
-        if (exists)
-        {
-          return new RuleBuilder().allowAll().build();
-        }
-      }
+      case Patient: return super.handleGet();
     }
 
-    return new RuleBuilder().denyAll("This user can not add observation to this patient").build();
+    if (!this.idsParamValues.isEmpty()) {
+      List<Observation> observations = Search.getResourcesByIds(this.idsParamValues, Observation.class);
+      this.idsParamValues.clear();
+      for (var observation : observations) {
+        var subject = observation.getSubject();
+        if (subject != null && subject.hasReference() && subject.getReferenceElement().getIdPart() != null) {
+          this.idsParamValues.add(subject.getReferenceElement().getIdPart());
+        }
+      }
+
+      return super.handleGet();
+    }
+
+    return new RuleBuilder().denyAll("Observation Rule").build();
+  }
+
+  @Override
+  public List<IAuthRule> handlePost() {
+    var resource = (Observation)this.requestResource;
+    var subject = resource.getSubject();
+    if (subject != null && subject.hasReference() && subject.getReferenceElement().getIdPart() != null) {
+      this.idsParamValues.add(subject.getReferenceElement().getIdPart());
+      return super.handleGet();
+    }
+
+    return new RuleBuilder().denyAll("Cannot Create Observation for this patient").build();
   }
 
   @Override
   public List<IAuthRule> handleDelete() {
-   if (this.requestResourceId == null)
-   {
-     throw InvalidRequestException.newInstance(400, "\"No Observation Id");
-   }
-
-   var observation = Search.getResourceById(this.requestResourceId.getIdPart(), Observation.class);
-   if (observation == null) {
-     throw InvalidRequestException.newInstance(404, "\"No Observation found");
-   }
-
-    if(observation.hasSubject())
-    {
-      var subjectId = observation.getSubject().getReferenceElement().getIdPart();
-      var allowedIds = this.GetAllowedUsersToAddAnObs();
-      if (allowedIds.contains(subjectId))
-      {
-        return new RuleBuilder().allowAll().build();
-      }
-    }
-
-    return new RuleBuilder().denyAll("Not allowed to delete observation").build();
+    return this.handleUpdate();
   }
 
-  // sec rules updates
-  // override handleUpdate and give it a deny all for an observation
-  private List<String> GetAllowedUsersToAddAnObs()
+  @Override
+  public List<IAuthRule> handleUpdate()
   {
-    List<IIdType> userIds = new ArrayList<>();
-    if (this.userType == UserType.organizationAdmin || this.userType == UserType.patient)
+    var id = this.idsParamValues.get(0);
+    Observation observation = Search.getResourceById(id, Observation.class);
+    var subject = observation.getSubject();
+    if (subject != null && subject.hasReference() && subject.getReferenceElement().getIdPart() != null)
     {
-      var organizationUsers = Search.getAllPatientsInOrganization(getAllowedOrganization().getIdPart());
-      userIds.addAll(organizationUsers);
-    }
-    else if (this.userType == UserType.practitioner)
-    {
-      var allowedCareTeams = CareTeamSearch.getAllowedCareTeamAsParticipant(this.userId).stream().map(e -> e.getIdPart()).collect(Collectors.toList());
-      var usersInCareTeam = CareTeamSearch.getAllUsersInCareTeams(allowedCareTeams)
-        .stream().filter(e -> e.getResourceType().compareTo("Patient") == 0).collect(Collectors.toList());
-
-      userIds.addAll(usersInCareTeam);
-    }
-    else
-    {
-      userIds.add(RuleBase.toIdType(this.userId, "Patient"));
+      this.idsParamValues.clear();
+      this.idsParamValues.add(subject.getReferenceElement().getIdPart());
+      return super.handleGet();
     }
 
-    return userIds.stream().map(e -> e.getIdPart()).collect(Collectors.toList());
+    return new RuleBuilder().allowAll("Cannot alter Observation for this patient").build();
   }
 }

@@ -8,8 +8,8 @@ import ca.uhn.fhir.jpa.starter.Util.CacheUtil;
 import ca.uhn.fhir.jpa.starter.Util.DBUtils;
 import ca.uhn.fhir.jpa.starter.Util.Search;
 import ca.uhn.fhir.jpa.starter.Util.SecurityRulesUtil;
+import ca.uhn.fhir.jpa.starter.ValidationRules.ValidationBase;
 import ca.uhn.fhir.jpa.starter.authorization.rules.RuleBase;
-import ca.uhn.fhir.rest.api.RestOperationTypeEnum;
 import ca.uhn.fhir.rest.api.server.RequestDetails;
 import ca.uhn.fhir.rest.server.interceptor.auth.AuthorizationInterceptor;
 import ca.uhn.fhir.rest.server.interceptor.auth.IAuthRule;
@@ -102,30 +102,20 @@ public class TokenValidationInterceptor extends AuthorizationInterceptor {
 
     CustomLoggingInterceptor.logDebug(theRequestDetails, "token " + token + " valid. Token cache size: " + tokenCache.size());
 
-    boolean isAdmin = tokenRecord.isAdmin();
+    if (tokenRecord.isAdmin())
+    {
+      return new RuleBuilder()
+        .allowAll("Super Admin")
+        .build();
+    }
+
     String userId = tokenRecord.getId();
     String[] scopes = tokenRecord.getScopes();
 
-    if (isAdmin)
-    {
-      return new RuleBuilder()
-        .allowAll("Admin")
-        .build();
-    }
-
-    if(theRequestDetails.getRestOperationType() == RestOperationTypeEnum.TRANSACTION){
-      return new RuleBuilder().allowAll().build();
-    }
-
-
-    if(theRequestDetails.getRestOperationType() == RestOperationTypeEnum.GET_PAGE){
-      return new RuleBuilder()
-        .allowAll("get-page")
-        .build();
-    }
-
+    ValidationBase validationBase;
     List<RuleBase>  ruleBase;
     try {
+      validationBase = SecurityRulesUtil.validationRulesFactory(theRequestDetails);
       ruleBase = SecurityRulesUtil.rulesFactory(theRequestDetails);
     } catch (Exception e) {
       throw new IllegalStateException(e.getMessage());
@@ -144,8 +134,6 @@ public class TokenValidationInterceptor extends AuthorizationInterceptor {
 
       UserType userType = tokenRecord.getType();
       rule.setupUser(userId, userType);
-      rule.setRequestParams(theRequestDetails);
-      this.setRequestResource(theRequestDetails, rule);
 
       List<IAuthRule> result = HandleRule(rule,scopes);
 
@@ -186,18 +174,6 @@ public class TokenValidationInterceptor extends AuthorizationInterceptor {
         return rule.handlePost();
       default:
         throw new IllegalStateException("Operation Unknown");
-    }
-  }
-
-  private void setRequestResource(RequestDetails requestDetails, RuleBase rule)
-  {
-    switch (requestDetails.getRequestType()) {
-      case PATCH:
-      case DELETE:
-      case PUT:
-        rule.SetRequestId(requestDetails);
-        break;
-      case POST: rule.SetRequestResource(requestDetails.getResource());
     }
   }
 

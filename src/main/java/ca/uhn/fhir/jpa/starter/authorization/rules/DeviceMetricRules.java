@@ -5,13 +5,14 @@ import ca.uhn.fhir.jpa.starter.Models.UserType;
 import ca.uhn.fhir.rest.server.interceptor.auth.IAuthRule;
 import ca.uhn.fhir.rest.server.interceptor.auth.RuleBuilder;
 import org.hl7.fhir.instance.model.api.IIdType;
+import org.hl7.fhir.r4.model.Device;
 import org.hl7.fhir.r4.model.DeviceMetric;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class DeviceMetricRules extends RuleBase {
+public class DeviceMetricRules extends DeviceRules {
   public DeviceMetricRules() {
     this.denyMessage = "DeviceMetric Rule";
     this.type = DeviceMetric.class;
@@ -19,79 +20,56 @@ public class DeviceMetricRules extends RuleBase {
 
   @Override
   public List<IAuthRule> handleGet() {
-//    var allowedDeviceIdRefs = this.setupAllowedIdList();
-//    var allowedDeviceMetrics = Search.getDeviceMetricsForDeviceList(allowedDeviceIdRefs);
-//    RuleBuilder ruleBuilder = new RuleBuilder();
-//    for (var id : allowedDeviceIdRefs) {
-//      ruleBuilder.allow().read().allResources().inCompartment("Device", id);
-//    }
-//
-//    for (var id : allowedDeviceMetrics) {
-//      ruleBuilder.allow().read().allResources().inCompartment("DeviceMetric", id);
-//    }
-//    CompartmentDefinition compartmentDefinition = new CompartmentDefinition();
-//
-//    List<IAuthRule> deviceRule = ruleBuilder.build();
-//    List<IAuthRule> commonRules = commonRulesGet();
-//    List<IAuthRule> denyRule = denyRule();
-//
-//    List<IAuthRule> ruleList = new ArrayList<>();
-//    ruleList.addAll(deviceRule);
-//    ruleList.addAll(commonRules);
-//    ruleList.addAll(denyRule);
-//
-//    return ruleList;
+    if (this.searchParamType == SearchParamType.Device) {
+      return super.handleGet();
+    }
 
-    return new RuleBuilder().allowAll().build();
+    if (!this.idsParamValues.isEmpty()) {
+      List<DeviceMetric> deviceMetrics = Search.getResourcesByIds(this.idsParamValues, DeviceMetric.class);
+      this.idsParamValues.clear();
+      for (var deviceMetric : deviceMetrics) {
+        var device = deviceMetric.getParent();
+        if (device != null && device.hasReference() && device.getReferenceElement().getIdPart() != null) {
+          this.idsParamValues.add(device.getReferenceElement().getIdPart());
+        }
+      }
+    }
+
+    return super.handleGet();
   }
 
   @Override
   public List<IAuthRule> handleDelete() {
-    return new RuleBuilder().denyAll().build();
+    return this.handleUpdate();
   }
 
   @Override
   public List<IAuthRule> handlePost() {
-    var allowedDeviceIdRefs = this.setupAllowedIdList();
-    RuleBuilder ruleBuilder = new RuleBuilder();
-    for (var id : allowedDeviceIdRefs) {
-      ruleBuilder.allow().write().allResources().inCompartment("Device", id);
+    var resource = (DeviceMetric)this.requestResource;
+    var device = resource.getParent();
+    if (device != null && device.hasReference() && device.getReferenceElement().getIdPart() != null)
+    {
+      this.idsParamValues.clear();
+      this.idsParamValues.add(device.getReferenceElement().getIdPart());
+      return super.handleGet();
     }
 
-    List<IAuthRule> deviceRule = ruleBuilder.build();
-    List<IAuthRule> commonRules = commonRulesPost();
-    List<IAuthRule> denyRule = denyRule();
-
-    List<IAuthRule> ruleList = new ArrayList<>();
-    ruleList.addAll(deviceRule);
-    ruleList.addAll(commonRules);
-    ruleList.addAll(denyRule);
-
-    return ruleList;
+    return new RuleBuilder().denyAll("Cannot add device for this patient").build();
   }
 
-
+  @Override
   public List<IAuthRule> handleUpdate()
   {
-    return handlePost();
-  }
-
-  private List<IIdType> setupAllowedIdList()
-  {
-    List<IIdType> userIds = new ArrayList<>();
-    var careTeamUsers = handleCareTeam();
-    userIds.addAll(careTeamUsers);
-
-    if (this.userType == UserType.patient)
+    var id = this.idsParamValues.get(0);
+    DeviceMetric deviceMetric = Search.getResourceById(id, DeviceMetric.class);
+    var device = deviceMetric.getParent();
+    if (device != null && device.hasReference() && device.getReferenceElement().getIdPart() != null)
     {
-      userIds.add(RuleBase.toIdType(this.userId, "Patient"));
-    }
-    else
-    {
-      var patients = Search.getPatients(this.userId);
-      userIds.addAll(patients);
+      this.idsParamValues.clear();
+      this.idsParamValues.add(device.getReferenceElement().getIdPart());
+      return super.handleGet();
     }
 
-    return Search.getDevices(userIds);
+    return new RuleBuilder().allowAll("Cannot alter device for this patient").build();
   }
 }

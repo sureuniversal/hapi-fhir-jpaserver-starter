@@ -8,7 +8,7 @@ import org.hl7.fhir.r4.model.CareTeam;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CareTeamSearch extends Search{
+public class CareTeamSearch extends Search {
   public static List<IIdType> GetAllowedCareTeamsForUser(String id)
   {
     var allowedAsParticipant = getAllowedCareTeamAsParticipant(id);

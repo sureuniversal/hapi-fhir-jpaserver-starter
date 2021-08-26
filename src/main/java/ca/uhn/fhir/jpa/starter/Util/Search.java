@@ -23,11 +23,6 @@ public class Search {
     server = System.getenv("INTERNAL_SERVER");
   }
 
-
-  public static IGenericClient getClient() {
-    return client;
-  }
-
   public static void setClient(IGenericClient client) {
     Search.client = client;
   }
@@ -45,52 +40,18 @@ public class Search {
     return client.read().resource(tClass).withId(id).execute();
   }
 
-  public static List<IIdType> getDevices(List<IIdType> patientIds) {
-    List<IIdType> retVal = new ArrayList<>();
-    var ids = new ArrayList<String>();
-    for (var id : patientIds) {
-      ids.add(id.getIdPart());
-    }
-
-    Bundle deviceBundle = (Bundle) client.search().forResource(Device.class)
-      .where(new ReferenceClientParam("patient").hasAnyOfIds(ids))
-      .execute();
-
-    for (var itm : deviceBundle.getEntry()) {
-      retVal.add(itm.getResource().getIdElement().toUnqualifiedVersionless());
-    }
-
-    return retVal;
-  }
-
-  public static List<IIdType> getDeviceMetricsForDeviceList(List<IIdType> deviceIds)
+  public static <T extends BaseResource> List<T> getResourcesByIds(List<String> ids, Class<T> tClass)
   {
-    List<IIdType> retVal = new ArrayList<>();
-    var ids = new ArrayList<String>();
-    for (var id : deviceIds) {
-      ids.add(id.getIdPart());
-    }
-
-    Bundle deviceBundle = (Bundle) client.search().forResource(DeviceMetric.class)
-      .where(new ReferenceClientParam("source").hasAnyOfIds(ids))
+    Bundle result = (Bundle) client.search().forResource(tClass)
+      .where(new ReferenceClientParam("_id").hasAnyOfIds(ids))
       .execute();
 
-    for (var itm : deviceBundle.getEntry()) {
-      retVal.add(itm.getResource().getIdElement().toUnqualifiedVersionless());
+    List<T> retVal = new ArrayList<>();
+    for (var item : result.getEntry()) {
+      retVal.add((T)item.getResource());
     }
 
     return retVal;
-  }
-
-  public static List<IIdType> getPatients(String practitionerId) {
-    List<IIdType> patients = new ArrayList<>();
-    Bundle patientBundle = (Bundle) client.search().forResource(Patient.class)
-      .where(new ReferenceClientParam("general-practitioner").hasId(practitionerId))
-      .execute();
-    for (Bundle.BundleEntryComponent item : patientBundle.getEntry()) {
-      patients.add(item.getResource().getIdElement().toUnqualifiedVersionless());
-    }
-    return patients;
   }
 
   public static UserType getPractitionerType(String practitioner){
@@ -111,19 +72,6 @@ public class Search {
     }
 
     return UserType.practitioner;
-  }
-
-  public static Patient getPatientById(String patientId){
-    Bundle bundle = (Bundle) client.search().forResource(Patient.class)
-      .where(new TokenClientParam("_id").exactly().code(patientId))
-      .execute();
-
-    if (bundle.getEntry().isEmpty())
-    {
-      return null;
-    }
-
-    return ((Patient)(bundle.getEntry().get(0).getResource()));
   }
 
   public static IIdType getPatientOrganization(String patientId){

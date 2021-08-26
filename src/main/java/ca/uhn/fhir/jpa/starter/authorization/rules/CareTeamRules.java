@@ -7,70 +7,77 @@ import ca.uhn.fhir.rest.server.interceptor.auth.IAuthRule;
 import ca.uhn.fhir.rest.server.interceptor.auth.RuleBuilder;
 import org.hl7.fhir.instance.model.api.IIdType;
 import org.hl7.fhir.r4.model.CareTeam;
+import org.hl7.fhir.r4.model.Device;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class CareTeamRules extends PatientRules{
+public class CareTeamRules extends PatientRules {
   public CareTeamRules() {
     this.type = CareTeam.class;
   }
 
   @Override
   public List<IAuthRule> handleGet() {
-    var operationAllowed = super.isOperationAllowed();
-    var allowedCareTeamList = this.setupAllowedCareTeamList().stream().map(e -> e.getIdPart()).collect(Collectors.toList());
-
-    var existCounter = 0;
-    for (var allowedId : this.idsParamValues) {
-      if(allowedCareTeamList.contains(allowedId))
-      {
-        existCounter++;
-      }
-
-      if(this.userId.compareTo(allowedId) == 0)
-      {
-        existCounter++;
-      }
-    }
-
-    if (existCounter >= this.idsParamValues.size() || operationAllowed)
+    switch (this.searchParamType)
     {
-      return new RuleBuilder().allowAll().build();
+      case Patient: return super.handleGet();
     }
 
-    return denyRule();
+    if (!this.idsParamValues.isEmpty())
+    {
+      List<CareTeam> careTeams = Search.getResourcesByIds(this.idsParamValues, CareTeam.class);
+      this.idsParamValues.clear();
+      for (var careTeam : careTeams)
+      {
+        var subject = careTeam.getSubject();
+        if (subject != null && subject.hasReference() && subject.getReferenceElement().getIdPart() != null)
+        {
+          this.idsParamValues.add(subject.getReferenceElement().getIdPart());
+        }
+      }
+
+      return super.handleGet();
+    }
+
+    return new RuleBuilder().denyAll("Device Rule").build();
   }
 
-  // Can create a careTeam if the caller is a patient and is the userId or if it is the organization admin for the subject
   @Override
   public List<IAuthRule> handlePost() {
-    return new RuleBuilder().allowAll().build();
+    var resource = (CareTeam)this.requestResource;
+    var subject = resource.getSubject();
+    if (subject != null && subject.hasReference() && subject.getReferenceElement().getIdPart() != null)
+    {
+      this.idsParamValues.add(subject.getReferenceElement().getIdPart());
+      return super.handleGet();
+    }
+
+    return new RuleBuilder().denyAll("Cannot add CareTeam for this patient").build();
   }
 
-  private List<IIdType> setupAllowedCareTeamList()
-  {
-    if (this.userType == UserType.organizationAdmin)
-    {
-      List<IIdType> careTeamList = new ArrayList<>();
-      var organizationUsers = Search.getAllPatientsInOrganization(getAllowedOrganization().getIdPart());
-      for (var user : organizationUsers)
-      {
-        var allowed = CareTeamSearch.getAllowedCareTeamAsSubject(user.getIdPart());
-        careTeamList.addAll(allowed);
-      }
 
-      return careTeamList;
-    }
-    else if (this.userType == UserType.patient)
+  @Override
+  public List<IAuthRule> handleDelete() {
+
+    return this.handleUpdate();
+  }
+
+  @Override
+  public List<IAuthRule> handleUpdate()
+  {
+    var id = this.idsParamValues.get(0);
+    CareTeam careTeam = Search.getResourceById(id, CareTeam.class);
+    var subject = careTeam.getSubject();
+    if (subject != null && subject.hasReference() && subject.getReferenceElement().getIdPart() != null)
     {
-      return CareTeamSearch.getAllowedCareTeamAsSubject(this.userId);
+      this.idsParamValues.clear();
+      this.idsParamValues.add(subject.getReferenceElement().getIdPart());
+      return super.handleGet();
     }
-    else
-    {
-      return CareTeamSearch.getAllowedCareTeamAsParticipant(this.userId);
-    }
+
+    return new RuleBuilder().allowAll("Cannot alter CareTeam for this patient").build();
   }
 }

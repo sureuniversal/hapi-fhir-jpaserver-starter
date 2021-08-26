@@ -23,11 +23,11 @@ public class MetadataRules extends RuleBase {
 
   public List<IAuthRule> handleUpdate()
   {
-    return handlePost();
+    return new RuleBuilder().denyAll().build();
   }
 
   @Override
   public List<IAuthRule> handleDelete() {
-    return new RuleBuilder().allowAll().build();
+    return new RuleBuilder().denyAll().build();
   }
 }
