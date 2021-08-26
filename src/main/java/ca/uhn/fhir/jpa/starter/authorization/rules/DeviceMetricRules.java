@@ -46,7 +46,7 @@ public class DeviceMetricRules extends DeviceRules {
   @Override
   public List<IAuthRule> handlePost() {
     var resource = (DeviceMetric)this.requestResource;
-    var device = resource.getParent();
+    var device = resource.getSource();
     if (device != null && device.hasReference() && device.getReferenceElement().getIdPart() != null)
     {
       this.idsParamValues.clear();
