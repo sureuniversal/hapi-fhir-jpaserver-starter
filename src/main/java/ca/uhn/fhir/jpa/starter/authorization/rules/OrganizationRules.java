@@ -1,5 +1,6 @@
 package ca.uhn.fhir.jpa.starter.authorization.rules;
 
+import ca.uhn.fhir.jpa.starter.CustomLoggingInterceptor;
 import ca.uhn.fhir.jpa.starter.Models.UserType;
 import ca.uhn.fhir.jpa.starter.Util.Search;
 import ca.uhn.fhir.rest.server.exceptions.InvalidRequestException;
@@ -29,6 +30,10 @@ public class OrganizationRules extends RuleBase{
     {
       return new RuleBuilder().denyAll("Not allowed to search by this organization user is a regular Practitioner").build();
     }
+
+    CustomLoggingInterceptor.logDebug(theRequestDetails, "user Organization: " + allowedOrganization.getIdPart());
+    String str = this.idsParamValues.stream().reduce(" ", (a, b) -> a + b);
+    CustomLoggingInterceptor.logDebug(theRequestDetails, "user param: " + str);
 
     var existCounter = this.idsParamValues.stream().filter(e -> e != null && e.contains(allowedOrganization.getIdPart())).collect(Collectors.toList()).size();
     if (existCounter >= this.idsParamValues.size())

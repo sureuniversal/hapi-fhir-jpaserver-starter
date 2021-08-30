@@ -144,6 +144,7 @@ public class TokenValidationInterceptor extends AuthorizationInterceptor {
 
       UserType userType = tokenRecord.getType();
       rule.setupUser(userId, userType);
+      rule.theRequestDetails = theRequestDetails;
 
       List<IAuthRule> result = HandleRule(rule,scopes);
 

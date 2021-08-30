@@ -3,6 +3,7 @@ package ca.uhn.fhir.jpa.starter.authorization.rules;
 import ca.uhn.fhir.jpa.starter.Models.UserType;
 import ca.uhn.fhir.jpa.starter.Util.ParameterParser;
 import ca.uhn.fhir.rest.api.RequestTypeEnum;
+import ca.uhn.fhir.rest.api.server.RequestDetails;
 import ca.uhn.fhir.rest.server.interceptor.auth.IAuthRule;
 import ca.uhn.fhir.rest.server.interceptor.auth.RuleBuilder;
 import org.hl7.fhir.instance.model.api.IBaseResource;
@@ -19,6 +20,7 @@ public abstract class RuleBase {
 
   public RequestTypeEnum requestType;
   protected List<String> idsParamValues = new ArrayList<>();
+  public RequestDetails theRequestDetails;
   private String[] allowedRequestParams = new String[]{
     "_id",
     "device",
