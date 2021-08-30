@@ -107,6 +107,9 @@ public class TokenValidationInterceptor extends AuthorizationInterceptor {
       tokenCache.put(token, tokenRecord);
     }
 
+    CustomLoggingInterceptor.logDebug(theRequestDetails,
+      "token type is for: " + (tokenRecord.getType() == UserType.organizationAdmin ? "Organization Admin" : "Practitioner"));
+
     CustomLoggingInterceptor.logDebug(theRequestDetails, "token " + token + " valid. Token cache size: " + tokenCache.size());
 
     if (tokenRecord.isAdmin())
@@ -159,6 +162,7 @@ public class TokenValidationInterceptor extends AuthorizationInterceptor {
         .build();
     }
 
+    CustomLoggingInterceptor.logDebug(theRequestDetails, "request in cache");
     return rulesList;
   }
 

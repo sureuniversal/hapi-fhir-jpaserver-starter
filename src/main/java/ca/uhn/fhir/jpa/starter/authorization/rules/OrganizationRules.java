@@ -27,7 +27,7 @@ public class OrganizationRules extends RuleBase{
     }
     else
     {
-      return new RuleBuilder().denyAll("Not allowed to search by this organization").build();
+      return new RuleBuilder().denyAll("Not allowed to search by this organization user is a regular Practitioner").build();
     }
 
     var existCounter = this.idsParamValues.stream().filter(e -> e != null && e.contains(allowedOrganization.getIdPart())).collect(Collectors.toList()).size();
