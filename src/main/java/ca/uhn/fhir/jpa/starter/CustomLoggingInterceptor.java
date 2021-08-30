@@ -195,8 +195,11 @@ public class CustomLoggingInterceptor {
             String contentType = myRequest.getContentType();
             if (isNotBlank(contentType)) {
               byte[] requestContents = myRequestDetails.loadRequestContents();
-              return new String(requestContents, Constants.CHARSET_UTF8);
+              var body = new String(requestContents, Constants.CHARSET_UTF8);
+              body = body.replace("\n", " ");
+              return body;
             }
+
             return "";
           }
           case "processingTimeMillis":
