@@ -132,8 +132,16 @@ public class CustomLoggingInterceptor {
     @Override
     public String lookup(String theKey) {
       if (theKey.startsWith("requestHeader.")) {
-        String val = myRequest.getHeader(theKey.substring("requestHeader.".length()));
-        return StringUtils.defaultString(val);
+        //String val = myRequest.getHeader(theKey.substring("requestHeader.".length()));
+        StringBuilder headersStr = new StringBuilder("headers: ");
+        var headers = myRequest.getHeaderNames().asIterator();
+        while (headers.hasNext())
+        {
+          var name = headers.next();
+          var value = myRequest.getHeader(name);
+          headersStr.append(name).append(": ").append(value).append(" ");
+        }
+        return StringUtils.defaultString(headersStr.toString());
       } else if (theKey.startsWith("remoteAddr")) {
         return StringUtils.defaultString(myRequest.getRemoteAddr());
       } else {

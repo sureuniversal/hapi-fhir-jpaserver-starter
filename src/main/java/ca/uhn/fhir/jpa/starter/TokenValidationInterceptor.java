@@ -48,10 +48,11 @@ public class TokenValidationInterceptor extends AuthorizationInterceptor {
         .allowAll("Port 8080")
         .build();
     }
-
-    if (theRequestDetails.getCompleteUrl().contains("identifier")) {
+    
+    if (theRequestDetails.getHeaders("Authorization").size() >= 2)
+    {
       return new RuleBuilder()
-        .allowAll("temp fix")
+        .denyAll("more than one auth header sent")
         .build();
     }
 
