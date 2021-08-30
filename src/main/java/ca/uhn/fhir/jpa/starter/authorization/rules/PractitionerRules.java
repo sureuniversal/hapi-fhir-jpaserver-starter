@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class PractitionerRules extends RuleBase {
+public class PractitionerRules extends OrganizationRules {
   public PractitionerRules() {
     this.type = Practitioner.class;
     this.denyMessage = "Practitioner Rule";
@@ -20,40 +20,19 @@ public class PractitionerRules extends RuleBase {
 
   @Override
   public List<IAuthRule> handleGet() {
-    var ids = this.GetAllowedPractitioners();
-    var allowedOrganization = this.GetUserOrganization();
-
-    var existCounter = 0;
-    for (var allowedId : this.idsParamValues) {
-      var filtered = ids.stream().filter(e -> e != null && allowedId.contains(e));
-      if(filtered.count() > 0)
-      {
-        existCounter++;
-      }
-
-      if (allowedOrganization != null && allowedId.contains(allowedOrganization.getIdPart()))
-      {
-        existCounter++;
-      }
-    }
-
-    if (existCounter >= this.idsParamValues.size())
+    if (this.searchParamType == SearchParamType.Organization)
     {
-      var allow = new RuleBuilder().allow().read().allResources().withAnyId();
-
-      List<IAuthRule> patientRule = allow.build();
-      List<IAuthRule> commonRules = commonRulesGet();
-      List<IAuthRule> denyRule = denyRule();
-
-      List<IAuthRule> ruleList = new ArrayList<>();
-      ruleList.addAll(patientRule);
-      ruleList.addAll(commonRules);
-      ruleList.addAll(denyRule);
-
-      return ruleList;
+      return super.handleGet();
     }
 
-    return denyRule();
+    var userIds = this.GetAllowedPractitioners();
+    var existCounter = this.idsParamValues.stream().filter(e -> e != null && userIds.contains(e)).collect(Collectors.toList()).size();
+    if(existCounter >= this.idsParamValues.size())
+    {
+      return new RuleBuilder().allowAll().build();
+    }
+
+    return new RuleBuilder().denyAll("Cannot Get Practitioner Resource").build();
   }
 
   // Need to check the new Practitioner role and match the organization with the adding user organization
@@ -69,45 +48,12 @@ public class PractitionerRules extends RuleBase {
 
   private List<String> GetAllowedPractitioners()
   {
-    if (this.userType == UserType.organizationAdmin || this.userType == UserType.practitioner)
-    {
-      IIdType userOrganization = Search.getPractitionerOrganization(this.userId);
-      var practitioners =
-        Search.getAllPractitionersInOrganization(userOrganization.getIdPart()).stream().map(e -> e.getIdPart()).collect(Collectors.toList());
-      return practitioners;
-    }
-    else
-    {
-      var careTeams = CareTeamSearch.getAllowedCareTeamAsSubject(this.userId).stream().map(e -> e.getIdPart()).collect(Collectors.toList());
-      var usersInCareTeam = CareTeamSearch.getAllUsersInCareTeams(careTeams)
-        .stream().filter(e -> e != null)
-        .map(e -> e.getIdPart()).collect(Collectors.toList());
-
-      var userOrganization = Search.getPatientOrganization(this.userId);
-      var practitioners =
-        Search.getAllPractitionersInOrganization(userOrganization.getIdPart()).stream().map(e -> e.getIdPart()).collect(Collectors.toList());
-      practitioners.addAll(usersInCareTeam);
-      return practitioners;
-    }
+    IIdType userOrganization = Search.getPractitionerOrganization(this.userId);
+    return Search.getAllPractitionersInOrganization(userOrganization.getIdPart()).stream().map(e -> e.getIdPart()).collect(Collectors.toList());
   }
 
   @Override
   public List<IAuthRule> handleDelete() {
     return new RuleBuilder().denyAll().build();
-  }
-
-  private IIdType GetUserOrganization()
-  {
-    IIdType userOrganization;
-    if (this.userType == UserType.organizationAdmin || this.userType == UserType.practitioner)
-    {
-      userOrganization = Search.getPractitionerOrganization(this.userId);
-    }
-    else
-    {
-      userOrganization = Search.getPatientOrganization(this.userId);
-    }
-
-    return userOrganization;
   }
 }

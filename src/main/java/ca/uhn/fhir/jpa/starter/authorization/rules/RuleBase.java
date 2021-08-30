@@ -38,9 +38,9 @@ public abstract class RuleBase {
       put("device", SearchParamType.Device);
       put("subject", SearchParamType.Patient);
       put("patient", SearchParamType.Patient);
-      put("participant", SearchParamType.Patient);
       put("_has:CareTeam:patient:subject", SearchParamType.Patient);
-      put("_has:CareTeam:patient:participant", SearchParamType.Patient);
+      put("_has:CareTeam:patient:participant", SearchParamType.Practitioner);
+      put("participant", SearchParamType.Practitioner);
       put("_has:PractitionerRole:practitioner:organization", SearchParamType.Organization);
       put("organization", SearchParamType.Organization);
     }

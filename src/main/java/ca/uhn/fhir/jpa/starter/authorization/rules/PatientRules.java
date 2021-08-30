@@ -18,7 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class PatientRules extends OrganizationRules {
+public class PatientRules extends PractitionerRules {
 
   public PatientRules() {
     this.denyMessage = "Patient Rule";
@@ -27,7 +27,7 @@ public class PatientRules extends OrganizationRules {
 
   @Override
   public List<IAuthRule> handleGet() {
-    if (this.searchParamType == SearchParamType.Organization)
+    if (this.searchParamType == SearchParamType.Organization || this.searchParamType == SearchParamType.Practitioner)
     {
       return super.handleGet();
     }

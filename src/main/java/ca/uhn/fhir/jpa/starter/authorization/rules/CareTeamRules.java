@@ -21,28 +21,30 @@ public class CareTeamRules extends PatientRules {
 
   @Override
   public List<IAuthRule> handleGet() {
-//    switch (this.searchParamType)
-//    {
-//      case Patient: return super.handleGet();
-//    }
-//
-//    if (!this.idsParamValues.isEmpty())
-//    {
-//      List<CareTeam> careTeams = Search.getResourcesByIds(this.idsParamValues, CareTeam.class);
-//      this.idsParamValues.clear();
-//      for (var careTeam : careTeams)
-//      {
-//        var subject = careTeam.getSubject();
-//        if (subject != null && subject.hasReference() && subject.getReferenceElement().getIdPart() != null)
-//        {
-//          this.idsParamValues.add(subject.getReferenceElement().getIdPart());
-//        }
-//      }
-//
-//      return super.handleGet();
-//    }
+    switch (this.searchParamType)
+    {
+      case Patient:
+      case Practitioner:
+        return super.handleGet();
+    }
 
-    return new RuleBuilder().allowAll().build();
+    if (!this.idsParamValues.isEmpty())
+    {
+      List<CareTeam> careTeams = Search.getResourcesByIds(this.idsParamValues, CareTeam.class);
+      this.idsParamValues.clear();
+      for (var careTeam : careTeams)
+      {
+        var subject = careTeam.getSubject();
+        if (subject != null && subject.hasReference() && subject.getReferenceElement().getIdPart() != null)
+        {
+          this.idsParamValues.add(subject.getReferenceElement().getIdPart());
+        }
+      }
+
+      return super.handleGet();
+    }
+
+    return new RuleBuilder().denyAll("Device Rule").build();
   }
 
   @Override
