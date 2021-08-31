@@ -49,6 +49,7 @@ public class PatientRules extends PractitionerRules {
     if (organization != null && organization.hasReference() && organization.getReferenceElement().getIdPart() != null)
     {
       this.idsParamValues.add(organization.getReferenceElement().getIdPart());
+      this.searchParamType = SearchParamType.Organization;
       return super.handleGet();
     }
 
@@ -64,6 +65,7 @@ public class PatientRules extends PractitionerRules {
     {
       this.idsParamValues.clear();
       this.idsParamValues.add(organization.getReferenceElement().getIdPart());
+      this.searchParamType = SearchParamType.Organization;
       return super.handleGet();
     }
 
