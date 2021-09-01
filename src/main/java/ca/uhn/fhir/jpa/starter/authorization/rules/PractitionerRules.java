@@ -1,16 +1,11 @@
 package ca.uhn.fhir.jpa.starter.authorization.rules;
 
-import ca.uhn.fhir.jpa.starter.Models.UserType;
-import ca.uhn.fhir.jpa.starter.Util.CareTeamSearch;
 import ca.uhn.fhir.jpa.starter.Util.Search;
 import ca.uhn.fhir.rest.server.interceptor.auth.IAuthRule;
 import ca.uhn.fhir.rest.server.interceptor.auth.RuleBuilder;
-import org.hl7.fhir.instance.model.api.IIdType;
 import org.hl7.fhir.r4.model.Practitioner;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class PractitionerRules extends OrganizationRules {
   public PractitionerRules() {
