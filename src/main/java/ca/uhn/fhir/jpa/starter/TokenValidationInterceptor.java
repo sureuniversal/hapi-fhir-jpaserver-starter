@@ -139,7 +139,7 @@ public class TokenValidationInterceptor extends AuthorizationInterceptor {
       if (cachedRule != null)
       {
         CustomLoggingInterceptor.logDebug(theRequestDetails, "request in cache");
-       // return cachedRule.rules;
+        // return cachedRule.rules;
       }
 
       UserType userType = tokenRecord.getType();
@@ -163,7 +163,6 @@ public class TokenValidationInterceptor extends AuthorizationInterceptor {
         .build();
     }
 
-    CustomLoggingInterceptor.logDebug(theRequestDetails, "request in cache");
     return rulesList;
   }
 

@@ -26,9 +26,9 @@ public abstract class RuleBase {
     "device",
     "subject",
     "patient",
-    "practitioner",
     "_has:CareTeam:patient:subject",
-    "_has:CareTeam:patient:participant",
+    "practitioner",
+    "_has:CareTeam:patient:practitioner",
     "_has:PractitionerRole:practitioner:organization",
     "organization"};
 
@@ -59,23 +59,6 @@ public abstract class RuleBase {
   public abstract List<IAuthRule> handleUpdate();
 
   public abstract List<IAuthRule> handleDelete();
-
-  protected List<IAuthRule> commonRulesGet() {
-    return new RuleBuilder()
-      .allow().metadata().andThen().allow().transaction().withAnyOperation().andApplyNormalRules().andThen()
-      .allow().patch().allRequests()
-      .build();
-  }
-
-  protected List<IAuthRule> denyRule() {
-    return new RuleBuilder()
-      .denyAll(denyMessage)
-      .build();
-  }
-
-  protected static IIdType toIdType(String id, String resourceType) {
-    return new IdType(resourceType, id);
-  }
 
   public void setRequestParams(String urlPath)
   {
