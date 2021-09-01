@@ -1,5 +1,6 @@
 package ca.uhn.fhir.jpa.starter.authorization.rules;
 
+import ca.uhn.fhir.jpa.starter.Models.UserType;
 import ca.uhn.fhir.jpa.starter.Util.Search;
 import ca.uhn.fhir.rest.server.interceptor.auth.IAuthRule;
 import ca.uhn.fhir.rest.server.interceptor.auth.RuleBuilder;
@@ -46,7 +47,12 @@ public class PractitionerRules extends OrganizationRules {
 
   private boolean allExists()
   {
-    var orgId = getUserOrganization().getIdPart();
-    return Search.allPractitionersExistsInOrganization(this.idsParamValues, orgId);
+    if (this.userType == UserType.organizationAdmin)
+    {
+      var orgId = getUserOrganization().getIdPart();
+      return Search.allPractitionersExistsInOrganization(this.idsParamValues, orgId);
+    }
+
+    return this.idsParamValues.size() == 1 && this.idsParamValues.get(0).contains(this.userId);
   }
 }
