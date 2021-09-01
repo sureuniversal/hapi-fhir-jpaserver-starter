@@ -26,7 +26,7 @@ public abstract class RuleBase {
     "device",
     "subject",
     "patient",
-    "participant",
+    "practitioner",
     "_has:CareTeam:patient:subject",
     "_has:CareTeam:patient:participant",
     "_has:PractitionerRole:practitioner:organization",
@@ -40,7 +40,7 @@ public abstract class RuleBase {
       put("patient", SearchParamType.Patient);
       put("_has:CareTeam:patient:subject", SearchParamType.Patient);
       put("_has:CareTeam:patient:participant", SearchParamType.Practitioner);
-      put("participant", SearchParamType.Practitioner);
+      put("practitioner", SearchParamType.Practitioner);
       put("_has:PractitionerRole:practitioner:organization", SearchParamType.Organization);
       put("organization", SearchParamType.Organization);
     }
