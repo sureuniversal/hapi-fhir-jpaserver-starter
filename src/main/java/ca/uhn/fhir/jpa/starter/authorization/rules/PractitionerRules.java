@@ -25,9 +25,7 @@ public class PractitionerRules extends OrganizationRules {
       return super.handleGet();
     }
 
-    var userIds = this.GetAllowedPractitioners();
-    var existCounter = this.idsParamValues.stream().filter(e -> e != null && userIds.contains(e)).collect(Collectors.toList()).size();
-    if(existCounter >= this.idsParamValues.size())
+    if (this.allExists())
     {
       return new RuleBuilder().allowAll().build();
     }
@@ -46,14 +44,14 @@ public class PractitionerRules extends OrganizationRules {
     return handlePost();
   }
 
-  private List<String> GetAllowedPractitioners()
-  {
-    IIdType userOrganization = Search.getPractitionerOrganization(this.userId);
-    return Search.getAllPractitionersInOrganization(userOrganization.getIdPart()).stream().map(e -> e.getIdPart()).collect(Collectors.toList());
-  }
-
   @Override
   public List<IAuthRule> handleDelete() {
     return new RuleBuilder().denyAll().build();
+  }
+
+  private boolean allExists()
+  {
+    var orgId = getUserOrganization().getIdPart();
+    return Search.allPractitionersExistsInOrganization(this.idsParamValues, orgId);
   }
 }

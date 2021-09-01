@@ -32,9 +32,7 @@ public class PatientRules extends PractitionerRules {
       return super.handleGet();
     }
 
-    var userIds = this.setupAllowedUserIdList();
-    var existCounter = this.idsParamValues.stream().filter(e -> e != null && userIds.contains(e)).collect(Collectors.toList()).size();
-    if(existCounter >= this.idsParamValues.size())
+    if (this.allExists())
     {
       return new RuleBuilder().allowAll().build();
     }
@@ -69,7 +67,7 @@ public class PatientRules extends PractitionerRules {
       return super.handleGet();
     }
 
-    return new RuleBuilder().allowAll("Cannot alter device for this patient").build();
+    return new RuleBuilder().allowAll("Cannot alter this patient").build();
   }
 
   @Override
@@ -77,32 +75,14 @@ public class PatientRules extends PractitionerRules {
     return this.handleUpdate();
   }
 
-  private List<String> setupAllowedUserIdList()
+  private boolean allExists()
   {
-    List<IIdType> userIds = new ArrayList<>();
-    if (this.userType == UserType.organizationAdmin || this.userType == UserType.patient)
+    if (this.userType == UserType.organizationAdmin)
     {
-      var organizationUsers = Search.getAllPatientsInOrganization(getUserOrganization().getIdPart());
-      userIds.addAll(organizationUsers);
+      var orgId = getUserOrganization().getIdPart();
+      return Search.allPatientsExistsInOrganization(this.idsParamValues, orgId);
     }
 
-    if (this.userType == UserType.patient)
-    {
-      var careTeams =
-        CareTeamSearch
-          .getAllowedCareTeamAsSubject(this.userId)
-          .stream().map(IIdType::getIdPart).collect(Collectors.toList());
-
-      userIds.addAll(CareTeamSearch.getAllUsersInCareTeams(careTeams));
-      userIds.add(RuleBase.toIdType(this.userId, "Patient"));
-    }
-
-    if (this.userType == UserType.practitioner)
-    {
-      userIds.addAll(CareTeamSearch.getSubjectsOfCareTeamsSearchingByParticipant(this.userId));
-    }
-
-    var idsList = userIds.stream().map(e -> e.getIdPart()).collect(Collectors.toList());
-    return idsList;
+    return Search.practitionerExitsForAllPatientsInCareTeam(this.idsParamValues, this.userId);
   }
 }
