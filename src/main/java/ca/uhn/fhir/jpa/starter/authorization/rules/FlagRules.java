@@ -18,7 +18,9 @@ public class FlagRules extends PatientRules {
   public List<IAuthRule> handleGet() {
     switch (this.searchParamType)
     {
-      case Patient: return super.handleGet();
+      case Patient:
+      case Organization:
+        return super.handleGet();
     }
 
     if (!this.idsParamValues.isEmpty()) {

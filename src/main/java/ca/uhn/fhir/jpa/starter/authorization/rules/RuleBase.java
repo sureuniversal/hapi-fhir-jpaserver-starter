@@ -30,6 +30,7 @@ public abstract class RuleBase {
     "practitioner",
     "_has:CareTeam:patient:practitioner",
     "_has:PractitionerRole:practitioner:organization",
+    "patient.organization",
     "organization"};
 
   protected Map<String, SearchParamType> allowedRequestParamsMap = new HashMap<>(){
@@ -42,6 +43,7 @@ public abstract class RuleBase {
       put("_has:CareTeam:patient:participant", SearchParamType.Practitioner);
       put("practitioner", SearchParamType.Practitioner);
       put("_has:PractitionerRole:practitioner:organization", SearchParamType.Organization);
+      put("patient.organization", SearchParamType.Organization);
       put("organization", SearchParamType.Organization);
     }
   };

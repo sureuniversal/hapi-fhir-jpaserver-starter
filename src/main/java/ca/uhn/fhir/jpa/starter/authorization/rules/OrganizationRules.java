@@ -32,11 +32,13 @@ public class OrganizationRules extends RuleBase{
     }
 
     CustomLoggingInterceptor.logDebug(theRequestDetails, "user Organization: " + allowedOrganization.getIdPart());
-    String str = this.idsParamValues.stream().reduce(" ", (a, b) -> a + b);
-    CustomLoggingInterceptor.logDebug(theRequestDetails, "user param: " + str);
+    if (this.idsParamValues.size() > 1)
+    {
+      return new RuleBuilder().denyAll("Cannot Search my multiple organizations").build();
+    }
 
-    var existCounter = this.idsParamValues.stream().filter(e -> e != null && e.contains(allowedOrganization.getIdPart())).collect(Collectors.toList()).size();
-    if (existCounter >= this.idsParamValues.size())
+    var orgParam = this.idsParamValues.get(0).replace("Organization/", "");
+    if (orgParam.compareTo(allowedOrganization.getIdPart()) == 0)
     {
       return new RuleBuilder().allowAll().build();
     }
