@@ -67,7 +67,8 @@ public class PatientRules extends PractitionerRules {
 
   private boolean allExists()
   {
-    if (this.userType == UserType.organizationAdmin)
+    // UserType.patient backward compatability
+    if (this.userType == UserType.organizationAdmin || this.userType == UserType.patient)
     {
       var orgId = getUserOrganization().getIdPart();
       return Search.allPatientsExistsInOrganization(this.idsParamValues, orgId);
