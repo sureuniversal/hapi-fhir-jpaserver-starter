@@ -5,6 +5,7 @@ import ca.uhn.fhir.jpa.starter.Util.Search;
 import ca.uhn.fhir.rest.server.interceptor.auth.IAuthRule;
 import ca.uhn.fhir.rest.server.interceptor.auth.RuleBuilder;
 import org.hl7.fhir.r4.model.Practitioner;
+import org.hl7.fhir.r4.model.PractitionerRole;
 
 import java.util.List;
 
@@ -35,14 +36,29 @@ public class PractitionerRules extends OrganizationRules {
     return new RuleBuilder().allowAll().build();
   }
 
-  public List<IAuthRule> handleUpdate()
-  {
-    return handlePost();
+  public List<IAuthRule> handleUpdate(){
+    var id = this.idsParamValues.get(0);
+    PractitionerRole practitionerRole = Search.getPractitionerRole(id);
+    if (practitionerRole == null)
+    {
+      return new RuleBuilder().allowAll("Practitioner has no role assigned").build();
+    }
+
+    var organization = practitionerRole.getOrganization();
+    if (organization != null && organization.hasReference() && organization.getReferenceElement().getIdPart() != null)
+    {
+      this.idsParamValues.clear();
+      this.idsParamValues.add(organization.getReferenceElement().getIdPart());
+      this.searchParamType = SearchParamType.Organization;
+      return super.handleGet();
+    }
+
+    return new RuleBuilder().allowAll("Cannot alter this Practitioner").build();
   }
 
   @Override
   public List<IAuthRule> handleDelete() {
-    return new RuleBuilder().denyAll().build();
+    return this.handleUpdate();
   }
 
   private boolean allExists()
