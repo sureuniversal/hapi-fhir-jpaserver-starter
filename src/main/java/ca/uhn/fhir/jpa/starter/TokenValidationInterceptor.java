@@ -10,6 +10,7 @@ import ca.uhn.fhir.jpa.starter.Util.Search;
 import ca.uhn.fhir.jpa.starter.Util.SecurityRulesUtil;
 import ca.uhn.fhir.jpa.starter.ValidationRules.ValidationBase;
 import ca.uhn.fhir.jpa.starter.authorization.rules.RuleBase;
+import ca.uhn.fhir.rest.api.RestOperationTypeEnum;
 import ca.uhn.fhir.rest.api.server.RequestDetails;
 import ca.uhn.fhir.rest.server.interceptor.auth.AuthorizationInterceptor;
 import ca.uhn.fhir.rest.server.interceptor.auth.IAuthRule;
@@ -116,6 +117,12 @@ public class TokenValidationInterceptor extends AuthorizationInterceptor {
     {
       return new RuleBuilder()
         .allowAll("Super Admin")
+        .build();
+    }
+
+    if(theRequestDetails.getRestOperationType() == RestOperationTypeEnum.GET_PAGE){
+      return new RuleBuilder()
+        .allowAll("get-page")
         .build();
     }
 

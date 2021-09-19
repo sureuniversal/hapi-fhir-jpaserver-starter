@@ -23,7 +23,6 @@ public abstract class RuleBase {
   public RequestDetails theRequestDetails;
   private String[] allowedRequestParams = new String[]{
     "_id",
-    "device",
     "subject",
     "patient",
     "_has:CareTeam:patient:subject",
@@ -31,12 +30,13 @@ public abstract class RuleBase {
     "_has:CareTeam:patient:practitioner",
     "_has:PractitionerRole:practitioner:organization",
     "patient.organization",
-    "organization"};
+    "organization",
+    "device",
+    "source"};
 
   protected Map<String, SearchParamType> allowedRequestParamsMap = new HashMap<>(){
     {
       put("_id", SearchParamType.Id);
-      put("device", SearchParamType.Device);
       put("subject", SearchParamType.Patient);
       put("patient", SearchParamType.Patient);
       put("_has:CareTeam:patient:subject", SearchParamType.Patient);
@@ -45,6 +45,8 @@ public abstract class RuleBase {
       put("_has:PractitionerRole:practitioner:organization", SearchParamType.Organization);
       put("patient.organization", SearchParamType.Organization);
       put("organization", SearchParamType.Organization);
+      put("device", SearchParamType.Device);
+      put("source", SearchParamType.Device);
     }
   };
 

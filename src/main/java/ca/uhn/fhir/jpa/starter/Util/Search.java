@@ -57,35 +57,38 @@ public class Search {
 
   public static boolean allPatientsExistsInOrganization(List<String> ids, String organizationId)
   {
+    List<String> distinctIds = ids.stream().distinct().collect(Collectors.toList());
     Bundle exists = (Bundle) client.search().forResource(Patient.class)
-      .where(new ReferenceClientParam("_id").hasAnyOfIds(ids))
+      .where(new ReferenceClientParam("_id").hasAnyOfIds(distinctIds))
       .and(new ReferenceClientParam("organization").hasId(organizationId))
       .totalMode(SearchTotalModeEnum.ACCURATE)
       .execute();
 
-     return exists.getTotal() == ids.size();
+     return exists.getTotal() == distinctIds.size();
   }
 
   public static boolean practitionerExitsForAllPatientsInCareTeam(List<String> ids, String practitionerId)
   {
+    List<String> distinctIds = ids.stream().distinct().collect(Collectors.toList());
     Bundle exists = (Bundle) client.search().forResource(CareTeam.class)
-      .where(new ReferenceClientParam("subject").hasAnyOfIds(ids))
+      .where(new ReferenceClientParam("subject").hasAnyOfIds(distinctIds))
       .and(new ReferenceClientParam("participant").hasId(practitionerId))
       .totalMode(SearchTotalModeEnum.ACCURATE)
       .execute();
 
-    return exists.getTotal() == ids.size();
+    return exists.getTotal() == distinctIds.size();
   }
 
   public static boolean allPractitionersExistsInOrganization(List<String> ids, String organizationId)
   {
+    List<String> distinctIds = ids.stream().distinct().collect(Collectors.toList());
     Bundle exists = (Bundle) client.search().forResource(PractitionerRole.class)
-      .where(new ReferenceClientParam("practitioner").hasAnyOfIds(ids))
+      .where(new ReferenceClientParam("practitioner").hasAnyOfIds(distinctIds))
       .and(new ReferenceClientParam("organization").hasId(organizationId))
       .totalMode(SearchTotalModeEnum.ACCURATE)
       .execute();
 
-    return exists.getTotal() == ids.size();
+    return exists.getTotal() == distinctIds.size();
   }
 
   public static UserType getPractitionerType(String practitioner){
